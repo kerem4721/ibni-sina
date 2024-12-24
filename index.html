@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kullanıcı bilgilerini yönetin, ekleyin ve silin.">
+    <title>Ana Sayfa</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            background-color: #222;
+        }
+        nav a {
+            color: white;
+            padding: 15px;
+            text-decoration: none;
+            display: block;
+        }
+        nav a:hover {
+            background-color: #555;
+        }
+        .container {
+            margin: 20px;
+        }
+        input[type="text"], input[type="file"] {
+            padding: 10px;
+            width: 250px;
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #e2e2e2;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .delete-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        .delete-btn:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Kullanıcı Bilgileri Yönetimi</h1>
+</header>
+
+<nav>
+    <a href="index.html">Ana Sayfa</a>
+    <a href="arama.html">Arama Sayfası</a>
+</nav>
+
+<div class="container">
+    <h2>Kullanıcı Bilgilerini Girin</h2>
+    <input type="text" id="userName" placeholder="Adınızı Girin">
+    <input type="text" id="userMealNumber" placeholder="Yemekhane Numarası">
+    <input type="file" id="userImage">
+    <button onclick="addUser()">Ekle</button>
+
+    <h3>Liste</h3>
+    <ul id="userList"></ul>
+</div>
+
+<script>
+    // Kullanıcıları saklamak için localStorage'ı kullanıyoruz
+    function getUsersFromStorage() {
+        const users = localStorage.getItem('users');
+        return users ? JSON.parse(users) : [];
+    }
+
+    // Kullanıcıları saklamak için localStorage'a yazıyoruz
+    function saveUsersToStorage(users) {
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+
+    // Kullanıcı ekleme fonksiyonu
+    function addUser() {
+        const userName = document.getElementById('userName').value;
+        const userMealNumber = document.getElementById('userMealNumber').value;
+        const userImage = document.getElementById('userImage').files[0];
+
+        if (userName && userMealNumber && userImage) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                // Kullanıcıyı localStorage'a ekliyoruz
+                const users = getUsersFromStorage();
+                users.push({ name: userName, mealNumber: userMealNumber, img: e.target.result });
+                saveUsersToStorage(users);
+
+                // Kullanıcıları ekranda göster
+                displayUsers();
+
+                // Inputları temizle
+                document.getElementById('userName').value = '';
+                document.getElementById('userMealNumber').value = '';
+                document.getElementById('userImage').value = '';
+            };
+            reader.readAsDataURL(userImage);
+        } else {
+            alert("Lütfen tüm alanları doldurun.");
+        }
+    }
+
+    // Kullanıcıları ekranda gösteren fonksiyon
+    function displayUsers() {
+        const userList = document.getElementById('userList');
+        userList.innerHTML = '';  // Önceki listeyi temizle
+
+        const users = getUsersFromStorage();
+
+        users.forEach((user, index) => {
+            const li = document.createElement('li');
+            li.classList.add('user-info');
+
+            const img = document.createElement('img');
+            img.src = user.img;
+
+            const userInfo = document.createElement('div');
+            userInfo.innerHTML = `<strong>${user.name}</strong><br>Yemekhane Numarası: ${user.mealNumber}`;
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Sil';
+            deleteBtn.classList.add('delete-btn');
+            deleteBtn.onclick = function() {
+                deleteUser(index); // Silme işlemi
+            };
+
+            li.appendChild(img);
+            li.appendChild(userInfo);
+            li.appendChild(deleteBtn);
+            userList.appendChild(li);
+        });
+    }
+
+    // Kullanıcıyı silme fonksiyonu
+    function deleteUser(index) {
+        const users = getUsersFromStorage();
+        users.splice(index, 1);  // Kullanıcıyı array'den sil
+
+        saveUsersToStorage(users); // Güncel listeyi kaydet
+        displayUsers();  // Listeyi tekrar göster
+    }
+
+    // Sayfa yüklendiğinde kullanıcıları göster
+    window.onload = function() {
+        displayUsers();
+    };
+</script>
+
+</body>
+</html>
